@@ -5,6 +5,7 @@ import { WinnerModal } from '@/components/WinnerModal';
 import { Prize } from '@/types';
 
 const PALETTE = ["#FF0055", "#00DDFF", "#FFD700", "#9D00FF", "#FF8C00", "#00FF7F"];
+const STORAGE_KEY = 'ruleta_data_v1';
 
 const INITIAL_DATA = [
   "10% OFF", "Nada", "2x1", "Sorpresa", 
@@ -19,8 +20,24 @@ function generatePrizes(names: string[]): Prize[] {
   }));
 }
 
+function getInitialData(): string[] {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length >= 2) {
+        return parsed;
+      }
+    } catch (e) {
+      console.error("Error loading saved data", e);
+    }
+  }
+  return INITIAL_DATA;
+}
+
 function App() {
-  const [prizes, setPrizes] = useState<Prize[]>(() => generatePrizes(INITIAL_DATA));
+  // Initialize state from storage or defaults
+  const [prizes, setPrizes] = useState<Prize[]>(() => generatePrizes(getInitialData()));
   const [winner, setWinner] = useState<Prize | null>(null);
   
   // Controls state
@@ -29,12 +46,16 @@ function App() {
 
   const handleUpdate = (names: string[]) => {
     setPrizes(generatePrizes(names));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(names));
   };
 
   const handleFinish = (winner: Prize) => {
     setWinner(winner);
     setIsSpinning(false);
   };
+
+  // Derived state for the textarea initial value
+  const initialText = prizes.map(p => p.text).join('\n');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] flex flex-col items-center justify-center p-4 overflow-hidden font-sans text-white">
@@ -61,7 +82,7 @@ function App() {
 
         <div className="flex-1 w-full max-w-md">
           <Controls 
-            initialNames={INITIAL_DATA.join('\n')}
+            initialNames={initialText}
             onUpdate={handleUpdate}
             onSpin={() => spinFnRef.current()}
             isSpinning={isSpinning}
