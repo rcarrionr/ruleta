@@ -6,6 +6,7 @@ import autoprefixer from 'autoprefixer'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: "/ruleta/",
   plugins: [react()],
   resolve: {
     alias: {
