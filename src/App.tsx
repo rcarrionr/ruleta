@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { Maximize2, Minimize2 } from 'lucide-react';
 import { Roulette } from '@/components/Roulette';
 import { Controls } from '@/components/Controls';
 import { WinnerModal } from '@/components/WinnerModal';
@@ -43,6 +44,7 @@ function App() {
   // Controls state
   const spinFnRef = useRef<() => void>(() => {});
   const [isSpinning, setIsSpinning] = useState(false);
+  const [isFocusMode, setIsFocusMode] = useState(false);
 
   const handleUpdate = (names: string[]) => {
     setPrizes(generatePrizes(names));
@@ -60,11 +62,19 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] flex flex-col items-center justify-center p-4 overflow-hidden font-sans text-white">
       
-      <header className="mb-8 text-center">
+      <header className="mb-8 text-center relative w-full max-w-6xl">
         <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00DDFF] to-[#FF0055] drop-shadow-[0_0_10px_rgba(255,0,85,0.5)] uppercase tracking-wider">
           Ruleta
         </h1>
         <p className="text-white/60 text-sm mt-2">¡Prueba tu suerte!</p>
+        
+        <button
+          onClick={() => setIsFocusMode(!isFocusMode)}
+          className="absolute top-1/2 -translate-y-1/2 right-0 p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition"
+          title={isFocusMode ? "Salir de modo enfoque" : "Modo enfoque"}
+        >
+          {isFocusMode ? <Minimize2 size={24} /> : <Maximize2 size={24} />}
+        </button>
       </header>
 
       <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12 w-full max-w-6xl justify-center">
@@ -80,12 +90,13 @@ function App() {
           />
         </div>
 
-        <div className="flex-1 w-full max-w-md">
+        <div className={`flex-1 w-full max-w-md transition-all duration-500 ${isFocusMode ? 'lg:max-w-xs' : ''}`}>
           <Controls 
             initialNames={initialText}
             onUpdate={handleUpdate}
             onSpin={() => spinFnRef.current()}
             isSpinning={isSpinning}
+            isFocusMode={isFocusMode}
           />
         </div>
 

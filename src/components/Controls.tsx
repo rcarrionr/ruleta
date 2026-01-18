@@ -13,11 +13,12 @@ interface ControlsProps {
   onUpdate: (names: string[]) => void;
   onSpin: () => void;
   isSpinning: boolean;
+  isFocusMode: boolean;
 }
 
 type Mode = 'text' | 'list';
 
-export function Controls({ initialNames, onUpdate, onSpin, isSpinning }: ControlsProps) {
+export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMode }: ControlsProps) {
   const [mode, setMode] = useState<Mode>('text');
   
   // Data State
@@ -90,33 +91,35 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning }: Control
   };
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-md bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl transition-all">
+    <div className={`flex flex-col gap-4 w-full max-w-md bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl transition-all ${isFocusMode ? 'bg-white/5' : ''}`}>
       
-      {/* Header & Tabs */}
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xl font-bold text-white">Opciones</h2>
-        <div className="flex bg-gray-900/50 rounded-lg p-1">
-          <button
-            onClick={() => handleModeSwitch('text')}
-            className={`p-2 rounded-md transition-all ${mode === 'text' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
-            title="Modo Texto"
-            disabled={isSpinning}
-          >
-            <AlignLeft size={18} />
-          </button>
-          <button
-            onClick={() => handleModeSwitch('list')}
-            className={`p-2 rounded-md transition-all ${mode === 'list' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
-            title="Modo Lista"
-            disabled={isSpinning}
-          >
-            <List size={18} />
-          </button>
+      {/* Header & Tabs - Hidden in Focus Mode */}
+      {!isFocusMode && (
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-bold text-white">Opciones</h2>
+          <div className="flex bg-gray-900/50 rounded-lg p-1">
+            <button
+              onClick={() => handleModeSwitch('text')}
+              className={`p-2 rounded-md transition-all ${mode === 'text' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
+              title="Modo Texto"
+              disabled={isSpinning}
+            >
+              <AlignLeft size={18} />
+            </button>
+            <button
+              onClick={() => handleModeSwitch('list')}
+              className={`p-2 rounded-md transition-all ${mode === 'list' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
+              title="Modo Lista"
+              disabled={isSpinning}
+            >
+              <List size={18} />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
       
       {/* --- TEXT MODE --- */}
-      {mode === 'text' && (
+      {!isFocusMode && mode === 'text' && (
         <textarea
           className="w-full h-60 p-4 rounded-lg bg-gray-900/80 border border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none font-mono text-sm"
           value={text}
@@ -127,7 +130,7 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning }: Control
       )}
 
       {/* --- LIST MODE --- */}
-      {mode === 'list' && (
+      {!isFocusMode && mode === 'list' && (
         <div className="flex flex-col h-60">
           {/* Add Item Input */}
           <div className="flex gap-2 mb-3">
@@ -184,15 +187,17 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning }: Control
       )}
       
       {/* Main Actions */}
-      <div className="flex gap-3 mt-auto pt-2 border-t border-white/10">
-        <button
-          onClick={handleUpdate}
-          disabled={isSpinning}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <RefreshCw size={18} />
-          Actualizar
-        </button>
+      <div className={`flex gap-3 pt-2 ${!isFocusMode ? 'mt-auto border-t border-white/10' : ''}`}>
+        {!isFocusMode && (
+          <button
+            onClick={handleUpdate}
+            disabled={isSpinning}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCw size={18} />
+            Actualizar
+          </button>
+        )}
         
         <button
           onClick={onSpin}
