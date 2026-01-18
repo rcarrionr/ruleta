@@ -91,7 +91,7 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
   };
 
   return (
-    <div className={`flex flex-col gap-4 w-full max-w-md bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl transition-all ${isFocusMode ? 'bg-white/5' : ''}`}>
+    <div className={`flex flex-col gap-4 w-full max-w-md transition-all duration-500 ${isFocusMode ? 'bg-transparent border-0 shadow-none p-0 items-center' : 'bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl'}`}>
       
       {/* Header & Tabs - Hidden in Focus Mode */}
       {!isFocusMode && (
@@ -202,7 +202,7 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
         <button
           onClick={onSpin}
           disabled={isSpinning}
-          className="flex-1 px-4 py-3 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-400 hover:to-rose-500 text-white font-bold text-lg rounded-xl shadow-lg transition transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`px-4 py-3 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-400 hover:to-rose-500 text-white font-bold text-lg rounded-xl shadow-lg transition transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${isFocusMode ? 'w-64 h-16 text-2xl shadow-2xl animate-pulse' : 'flex-1'}`}
         >
           {isSpinning ? '...' : '¡GIRAR!'}
         </button>

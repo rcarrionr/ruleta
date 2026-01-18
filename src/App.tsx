@@ -62,15 +62,15 @@ function App() {
   const initialText = prizes.map(p => p.text).join('\n');
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] flex flex-col items-center p-4 overflow-hidden font-sans text-white transition-all duration-500 ${isFocusMode ? 'justify-start pt-0' : 'justify-center'}`}>
+    <div className={`bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] flex flex-col items-center p-4 font-sans text-white transition-all duration-500 ${isFocusMode ? 'h-screen w-screen overflow-hidden justify-between pb-8 pt-2' : 'min-h-screen justify-center overflow-hidden'}`}>
       
-      <header className={`transition-all duration-500 text-center relative w-full max-w-6xl ${isFocusMode ? 'mb-2 scale-75 h-16 flex items-center justify-center' : 'mb-8'}`}>
-        <h1 className={`font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00DDFF] to-[#FF0055] drop-shadow-[0_0_10px_rgba(255,0,85,0.5)] uppercase tracking-wider transition-all ${isFocusMode ? 'text-3xl' : 'text-5xl'}`}>
+      <header className={`transition-all duration-500 text-center relative w-full max-w-6xl z-50 ${isFocusMode ? 'h-12 flex items-center justify-center shrink-0' : 'mb-8'}`}>
+        <h1 className={`font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00DDFF] to-[#FF0055] drop-shadow-[0_0_10px_rgba(255,0,85,0.5)] uppercase tracking-wider transition-all ${isFocusMode ? 'text-2xl' : 'text-5xl'}`}>
           Ruleta
         </h1>
         {!isFocusMode && <p className="text-white/60 text-sm mt-2">¡Prueba tu suerte!</p>}
         
-        <div className="absolute top-1/2 -translate-y-1/2 right-0 flex gap-2">
+        <div className={`absolute right-0 flex gap-2 ${isFocusMode ? 'top-1/2 -translate-y-1/2' : 'top-1/2 -translate-y-1/2'}`}>
           {/* View Toggle */}
           <button
             onClick={() => setViewMode(viewMode === 'wheel' ? 'scroll' : 'wheel')}
@@ -92,9 +92,9 @@ function App() {
         </div>
       </header>
 
-      <div className={`flex items-center gap-8 lg:gap-12 w-full max-w-7xl justify-center transition-all duration-500 ${isFocusMode ? 'flex-col lg:flex-row flex-1' : 'flex-col lg:flex-row'}`}>
+      <div className={`flex w-full max-w-7xl justify-center transition-all duration-500 ${isFocusMode ? 'flex-col items-center flex-1 h-full overflow-hidden' : 'flex-col lg:flex-row items-center gap-8 lg:gap-12'}`}>
         
-        <div className={`flex justify-center transition-all duration-500 ${isFocusMode ? 'flex-[2] w-full h-full items-center' : 'flex-1 w-full'}`}>
+        <div className={`flex justify-center transition-all duration-500 ${isFocusMode ? 'flex-1 w-full h-full items-center justify-center overflow-hidden py-4' : 'flex-1 w-full'}`}>
           {viewMode === 'wheel' ? (
             <Roulette 
               prizes={prizes} 
@@ -118,7 +118,7 @@ function App() {
           )}
         </div>
 
-        <div className={`transition-all duration-500 ${isFocusMode ? 'flex-1 w-full max-w-xs scale-90 lg:scale-100' : 'flex-1 w-full max-w-md'}`}>
+        <div className={`transition-all duration-500 ${isFocusMode ? 'w-full flex justify-center pb-4 shrink-0' : 'flex-1 w-full max-w-md'}`}>
           <Controls 
             initialNames={initialText}
             onUpdate={handleUpdate}
