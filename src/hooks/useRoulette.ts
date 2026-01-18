@@ -25,30 +25,30 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    // Always get fresh context
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     stateRef.current.ctx = ctx;
 
+    const { width, height } = canvas;
+    const cx = width / 2;
+    const cy = height / 2;
+    const radius = Math.min(width, height) / 2 - 10;
+
     const arc = (2 * Math.PI) / prizes.length;
     stateRef.current.arc = arc;
 
-    const outsideRadius = 240;
-    const insideRadius = 50;
+    const outsideRadius = radius;
+    const insideRadius = radius * 0.2;
     
-    // Clear
-    ctx.clearRect(0, 0, 500, 500);
+    ctx.clearRect(0, 0, width, height);
     
-    const cx = 250;
-    const cy = 250;
-
     ctx.strokeStyle = "rgba(0,0,0,0)";
     ctx.lineWidth = 0;
 
-    // Font size dynamic
-    let fontSize = 24;
-    if (prizes.length > 12) fontSize = 18;
-    if (prizes.length > 20) fontSize = 14;
+    // Font size dynamic based on radius
+    let fontSize = Math.max(12, radius / 10);
+    if (prizes.length > 12) fontSize = radius / 14;
+    if (prizes.length > 20) fontSize = radius / 18;
     ctx.font = `bold ${fontSize}px Inter, sans-serif`;
 
     for (let i = 0; i < prizes.length; i++) {
@@ -66,57 +66,44 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
       ctx.save();
       ctx.shadowColor = "rgba(0,0,0,0.2)";
       ctx.shadowBlur = 4;
-      ctx.shadowOffsetX = 1;
-      ctx.shadowOffsetY = 1;
       
       ctx.fillStyle = "#FFFFFF";
-      
-      // Calculate middle angle of the slice
       const middleAngle = angle + arc / 2;
+      const textStartRadius = insideRadius + (radius * 0.05);
       
-      // Move to the position near the inner hub
-      const textStartRadius = insideRadius + 15;
       ctx.translate(
         cx + Math.cos(middleAngle) * textStartRadius, 
         cy + Math.sin(middleAngle) * textStartRadius
       );
       
-      // Rotate to match the slice direction
       ctx.rotate(middleAngle);
       
       const text = prizes[i].text;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
       
-      // Calculate max width (from hub to near edge)
-      const maxWidth = outsideRadius - insideRadius - 30;
-      
-      // Draw text
+      const maxWidth = outsideRadius - insideRadius - (radius * 0.1);
       ctx.fillText(text, 0, 0, maxWidth);
-      
       ctx.restore();
     }
 
     // Center Hub
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.arc(cx, cy, insideRadius - 5, 0, 2 * Math.PI);
+    ctx.arc(cx, cy, insideRadius - (radius * 0.01), 0, 2 * Math.PI);
     ctx.fill();
     
     // Center Dot
     ctx.fillStyle = "#1a1a1a";
     ctx.beginPath();
-    ctx.arc(cx, cy, 15, 0, 2 * Math.PI);
+    ctx.arc(cx, cy, radius * 0.06, 0, 2 * Math.PI);
     ctx.fill();
 
-    // Pointer (Triangle at top)
-    // In original code, there was no explicit pointer drawn in canvas, 
-    // it was likely CSS or implied at 270deg (top).
-    // Let's add a simple one to be sure.
+    // Pointer
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.moveTo(cx - 10, cy - (outsideRadius + 10));
-    ctx.lineTo(cx + 10, cy - (outsideRadius + 10));
+    ctx.moveTo(cx - (radius * 0.04), cy - (outsideRadius + 10));
+    ctx.lineTo(cx + (radius * 0.04), cy - (outsideRadius + 10));
     ctx.lineTo(cx, cy - (outsideRadius - 5));
     ctx.fill();
 

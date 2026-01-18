@@ -5,9 +5,10 @@ interface RouletteProps {
   prizes: Prize[];
   onFinish: (winner: Prize) => void;
   onRef: (spin: () => void, isSpinning: boolean) => void;
+  isFocusMode?: boolean;
 }
 
-export function Roulette({ prizes, onFinish, onRef }: RouletteProps) {
+export function Roulette({ prizes, onFinish, onRef, isFocusMode }: RouletteProps) {
   const { canvasRef, spin, isSpinning } = useRoulette({ prizes, onFinish });
 
   // Pass control back to parent
@@ -16,20 +17,16 @@ export function Roulette({ prizes, onFinish, onRef }: RouletteProps) {
   }
 
   return (
-    <div className="relative flex justify-center items-center drop-shadow-2xl">
-      {/* Pointer overlay (optional visual enhancement) */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 w-0 h-0 
-        border-l-[15px] border-l-transparent
-        border-r-[15px] border-r-transparent
-        border-t-[30px] border-t-white
-        z-10 drop-shadow-md hidden">
-      </div>
-      
+    <div className={`relative flex justify-center items-center transition-all duration-500 ${isFocusMode ? 'w-full h-full' : 'drop-shadow-2xl'}`}>
       <canvas
         ref={canvasRef}
-        width={500}
-        height={500}
-        className="max-w-full h-auto rounded-full shadow-[0_0_50px_rgba(0,0,0,0.5)] border-4 border-gray-800"
+        width={800}
+        height={800}
+        className={`transition-all duration-500 rounded-full ${
+          isFocusMode 
+            ? 'h-[80vh] w-auto max-w-[95vw] shadow-[0_0_80px_rgba(0,0,0,0.6)]' 
+            : 'max-w-full h-auto shadow-[0_0_50px_rgba(0,0,0,0.5)] border-4 border-gray-800'
+        }`}
       />
     </div>
   );
