@@ -34,7 +34,6 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
     stateRef.current.arc = arc;
 
     const outsideRadius = 240;
-    const textRadius = 160;
     const insideRadius = 50;
     
     // Clear
