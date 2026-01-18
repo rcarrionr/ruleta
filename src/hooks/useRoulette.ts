@@ -161,9 +161,31 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
     if (isSpinning) return;
     setIsSpinning(true);
     
-    stateRef.current.spinAngleStart = Math.random() * 10 + 10;
+    // Determine Force Profile
+    const force = Math.random();
+    let velocity = 0;
+    let duration = 0;
+
+    if (force < 0.15) {
+      // WEAK SPIN (Lazy)
+      // Low speed, stops quickly (2.5s - 4s)
+      velocity = Math.random() * 15 + 10; 
+      duration = Math.random() * 1500 + 2500;
+    } else if (force < 0.8) {
+      // NORMAL SPIN
+      // Standard speed (4s - 7s)
+      velocity = Math.random() * 30 + 30; 
+      duration = Math.random() * 3000 + 4000;
+    } else {
+      // EPIC SPIN (Super Strong)
+      // Very high initial speed, long friction (8s - 13s)
+      velocity = Math.random() * 60 + 60; 
+      duration = Math.random() * 5000 + 8000; 
+    }
+    
+    stateRef.current.spinAngleStart = velocity;
     stateRef.current.spinTime = 0;
-    stateRef.current.spinTimeTotal = Math.random() * 3000 + 4000;
+    stateRef.current.spinTimeTotal = duration;
     
     rotateWheel();
   };
