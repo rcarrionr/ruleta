@@ -63,23 +63,38 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
       ctx.stroke();
       ctx.fill();
 
-      // Text
+      // Text (Radial Orientation)
       ctx.save();
       ctx.shadowColor = "rgba(0,0,0,0.2)";
-      ctx.shadowBlur = 5;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
       
       ctx.fillStyle = "#FFFFFF";
-      ctx.translate(cx + Math.cos(angle + arc / 2) * textRadius, 
-                    cy + Math.sin(angle + arc / 2) * textRadius);
-      ctx.rotate(angle + arc / 2 + Math.PI / 2);
+      
+      // Calculate middle angle of the slice
+      const middleAngle = angle + arc / 2;
+      
+      // Move to the position near the inner hub
+      const textStartRadius = insideRadius + 15;
+      ctx.translate(
+        cx + Math.cos(middleAngle) * textStartRadius, 
+        cy + Math.sin(middleAngle) * textStartRadius
+      );
+      
+      // Rotate to match the slice direction
+      ctx.rotate(middleAngle);
       
       const text = prizes[i].text;
-      let displayText = text;
-      if (text.length > 15) displayText = text.substring(0, 12) + '...';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
       
-      ctx.fillText(displayText, -ctx.measureText(displayText).width / 2, 0);
+      // Calculate max width (from hub to near edge)
+      const maxWidth = outsideRadius - insideRadius - 30;
+      
+      // Draw text
+      ctx.fillText(text, 0, 0, maxWidth);
+      
       ctx.restore();
     }
 
