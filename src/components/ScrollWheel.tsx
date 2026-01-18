@@ -1,5 +1,5 @@
-import { useRef, useState, useEffect } from 'react';
-import { motion, useAnimation, useMotionValue } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, useAnimation } from 'framer-motion';
 import { Prize } from '@/types';
 import confetti from 'canvas-confetti';
 
@@ -16,7 +16,6 @@ const VISIBLE_ITEMS = 5; // Odd number ideally
 export function ScrollWheel({ prizes, onFinish, onRef, isFocusMode }: ScrollWheelProps) {
   const [isSpinning, setIsSpinning] = useState(false);
   const controls = useAnimation();
-  const containerRef = useRef<HTMLDivElement>(null);
   
   // Create a long list for infinite illusion
   // Repeat prizes enough times to scroll for a while
