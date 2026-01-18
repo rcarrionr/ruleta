@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
-import { Maximize2, Minimize2 } from 'lucide-react';
+import { Maximize2, Minimize2, RefreshCcw, LayoutList } from 'lucide-react';
 import { Roulette } from '@/components/Roulette';
+import { ScrollWheel } from '@/components/ScrollWheel';
 import { Controls } from '@/components/Controls';
 import { WinnerModal } from '@/components/WinnerModal';
 import { Prize } from '@/types';
@@ -45,6 +46,7 @@ function App() {
   const spinFnRef = useRef<() => void>(() => {});
   const [isSpinning, setIsSpinning] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [viewMode, setViewMode] = useState<'wheel' | 'scroll'>('wheel');
 
   const handleUpdate = (names: string[]) => {
     setPrizes(generatePrizes(names));
@@ -68,27 +70,52 @@ function App() {
         </h1>
         {!isFocusMode && <p className="text-white/60 text-sm mt-2">¡Prueba tu suerte!</p>}
         
-        <button
-          onClick={() => setIsFocusMode(!isFocusMode)}
-          className={`absolute p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition z-50 ${isFocusMode ? 'top-4 right-4' : 'top-1/2 -translate-y-1/2 right-0'}`}
-          title={isFocusMode ? "Salir de modo enfoque" : "Modo enfoque"}
-        >
-          {isFocusMode ? <Minimize2 size={24} /> : <Maximize2 size={24} />}
-        </button>
+        <div className="absolute top-1/2 -translate-y-1/2 right-0 flex gap-2">
+          {/* View Toggle */}
+          <button
+            onClick={() => setViewMode(viewMode === 'wheel' ? 'scroll' : 'wheel')}
+            className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition"
+            title={viewMode === 'wheel' ? "Cambiar a lista" : "Cambiar a ruleta"}
+            disabled={isSpinning}
+          >
+            {viewMode === 'wheel' ? <LayoutList size={24} /> : <RefreshCcw size={24} />}
+          </button>
+          
+          {/* Focus Mode Toggle */}
+          <button
+            onClick={() => setIsFocusMode(!isFocusMode)}
+            className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition"
+            title={isFocusMode ? "Salir de modo enfoque" : "Modo enfoque"}
+          >
+            {isFocusMode ? <Minimize2 size={24} /> : <Maximize2 size={24} />}
+          </button>
+        </div>
       </header>
 
       <div className={`flex items-center gap-8 lg:gap-12 w-full max-w-7xl justify-center transition-all duration-500 ${isFocusMode ? 'flex-col lg:flex-row flex-1' : 'flex-col lg:flex-row'}`}>
         
-        <div className={`flex justify-center transition-all duration-500 ${isFocusMode ? 'flex-[2] w-full h-full' : 'flex-1 w-full'}`}>
-          <Roulette 
-            prizes={prizes} 
-            onFinish={handleFinish}
-            isFocusMode={isFocusMode}
-            onRef={(spin, spinning) => {
-              spinFnRef.current = spin;
-              if (spinning !== isSpinning) setIsSpinning(spinning);
-            }}
-          />
+        <div className={`flex justify-center transition-all duration-500 ${isFocusMode ? 'flex-[2] w-full h-full items-center' : 'flex-1 w-full'}`}>
+          {viewMode === 'wheel' ? (
+            <Roulette 
+              prizes={prizes} 
+              onFinish={handleFinish}
+              isFocusMode={isFocusMode}
+              onRef={(spin, spinning) => {
+                spinFnRef.current = spin;
+                if (spinning !== isSpinning) setIsSpinning(spinning);
+              }}
+            />
+          ) : (
+            <ScrollWheel 
+              prizes={prizes}
+              onFinish={handleFinish}
+              isFocusMode={isFocusMode}
+              onRef={(spin, spinning) => {
+                spinFnRef.current = spin;
+                if (spinning !== isSpinning) setIsSpinning(spinning);
+              }}
+            />
+          )}
         </div>
 
         <div className={`transition-all duration-500 ${isFocusMode ? 'flex-1 w-full max-w-xs scale-90 lg:scale-100' : 'flex-1 w-full max-w-md'}`}>
