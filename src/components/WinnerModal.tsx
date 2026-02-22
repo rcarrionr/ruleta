@@ -38,6 +38,7 @@ export function WinnerModal({ winner, onClose }: WinnerModalProps) {
             <button
               onClick={onClose}
               className="px-8 py-3 bg-gray-900 text-white font-bold rounded-full hover:bg-gray-800 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              tabIndex={0}
             >
               ¡Genial!
             </button>

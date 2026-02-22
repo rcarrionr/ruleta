@@ -103,6 +103,7 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
               className={`p-2 rounded-md transition-all ${mode === 'text' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
               title="Modo Texto"
               disabled={isSpinning}
+              tabIndex={0}
             >
               <AlignLeft size={18} />
             </button>
@@ -111,6 +112,7 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
               className={`p-2 rounded-md transition-all ${mode === 'list' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
               title="Modo Lista"
               disabled={isSpinning}
+              tabIndex={0}
             >
               <List size={18} />
             </button>
@@ -126,6 +128,7 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
           onChange={(e) => setText(e.target.value)}
           placeholder="Ingresa un nombre por línea..."
           disabled={isSpinning}
+          tabIndex={0}
         />
       )}
 
@@ -142,11 +145,13 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
               onChange={(e) => setNewItem(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isSpinning}
+              tabIndex={0}
             />
             <button 
               onClick={addItem}
               disabled={!newItem.trim() || isSpinning}
               className="bg-green-600 hover:bg-green-500 text-white p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+              tabIndex={0}
             >
               <Plus size={20} />
             </button>
@@ -164,6 +169,7 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
                   onClick={() => removeItem(idx)}
                   className="text-gray-400 hover:text-red-400 p-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity"
                   disabled={isSpinning}
+                  tabIndex={0}
                 >
                   <Trash2 size={16} />
                 </button>
@@ -178,6 +184,7 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
                 onClick={clearAll}
                 className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 hover:underline"
                 disabled={isSpinning}
+                tabIndex={0}
               >
                 <X size={12} /> Borrar todo
               </button>
@@ -193,6 +200,7 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
             onClick={handleUpdate}
             disabled={isSpinning}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            tabIndex={0}
           >
             <RefreshCw size={18} />
             Actualizar
@@ -203,6 +211,7 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
           onClick={onSpin}
           disabled={isSpinning}
           className={`px-4 py-3 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-400 hover:to-rose-500 text-white font-bold text-lg rounded-xl shadow-lg transition transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${isFocusMode ? 'w-64 h-16 text-2xl shadow-2xl animate-pulse' : 'flex-1'}`}
+          tabIndex={0}
         >
           {isSpinning ? '...' : '¡GIRAR!'}
         </button>
