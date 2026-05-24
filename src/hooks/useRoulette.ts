@@ -5,9 +5,10 @@ import confetti from 'canvas-confetti';
 interface UseRouletteProps {
   prizes: Prize[];
   onFinish?: (winner: Prize) => void;
+  previousWinners?: string[]; // IDs of previous winners to avoid repetition
 }
 
-export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
+export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRouletteProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   
@@ -115,18 +116,46 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
     drawRouletteWheel();
   }, [drawRouletteWheel]);
 
+  // Función para seleccionar un ganador evitando repeticiones
+  const selectWeightedWinner = useCallback(() => {
+    // Calcular pesos basados en historial y peso base
+    const weights = prizes.map((prize) => {
+      let weight = prize.weight ?? 1;
+      
+      // Por cada aparición en los últimos giros, reducir probabilidad
+      const occurrenceCount = previousWinners.filter(id => id === prize.id).length;
+      
+      // Fórmula: cuantas más veces ha ganado, menor probabilidad
+      weight *= Math.pow(0.5, occurrenceCount);
+      
+      return weight;
+    });
+
+    // Seleccionar basado en pesos
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    let random = Math.random() * totalWeight;
+    
+    for (let i = 0; i < prizes.length; i++) {
+      random -= weights[i];
+      if (random <= 0) {
+        return i;
+      }
+    }
+    
+    return 0;
+  }, [prizes, previousWinners]);
+
   // Animation Logic
-  const stopRotateWheel = () => {
+  const stopRotateWheel = useCallback((targetWinnerIndex: number) => {
     setIsSpinning(false);
     
-    const winnerIndex = stateRef.current.targetWinnerIndex;
-    const winner = prizes[winnerIndex];
+    const winner = prizes[targetWinnerIndex];
 
     // Fire Confetti
     launchConfetti();
 
     if (onFinish) onFinish(winner);
-  };
+  }, [prizes, onFinish]);
 
   const easeOut = (t: number, b: number, c: number, d: number) => {
     const ts = (t /= d) * t;
@@ -134,50 +163,43 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
     return b + c * (tc + -3 * ts + 3 * t);
   };
 
-  const rotateWheel = useCallback(() => {
-    const s = stateRef.current;
-    s.spinTime += 30;
-    
-    if (s.spinTime >= s.spinTimeTotal) {
-      stopRotateWheel();
-      return;
-    }
+  const rotateWheel = useCallback((targetWinnerIndex: number) => {
+    return () => {
+      const s = stateRef.current;
+      s.spinTime += 30;
+      
+      if (s.spinTime >= s.spinTimeTotal) {
+        stopRotateWheel(targetWinnerIndex);
+        return;
+      }
 
-    const spinAngle = s.spinAngleStart - easeOut(s.spinTime, 0, s.spinAngleStart, s.spinTimeTotal);
-    s.startAngle += (spinAngle * Math.PI / 180);
-    
-    drawRouletteWheel();
-    requestAnimationFrame(rotateWheel);
-  }, [drawRouletteWheel]);
+      const spinAngle = s.spinAngleStart - easeOut(s.spinTime, 0, s.spinAngleStart, s.spinTimeTotal);
+      s.startAngle += (spinAngle * Math.PI / 180);
+      
+      drawRouletteWheel();
+      requestAnimationFrame(rotateWheel(targetWinnerIndex));
+    };
+  }, [drawRouletteWheel, stopRotateWheel]);
 
-  const spin = () => {
+  const spin = useCallback(() => {
     if (isSpinning || prizes.length === 0) return;
     setIsSpinning(true);
     
-    // 1. Pick winner based on weights
-    const totalWeight = prizes.reduce((sum, p) => sum + (p.weight ?? 1), 0);
-    let random = Math.random() * totalWeight;
-    let winnerIndex = 0;
-    for (let i = 0; i < prizes.length; i++) {
-      random -= (prizes[i].weight ?? 1);
-      if (random <= 0) {
-        winnerIndex = i;
-        break;
-      }
-    }
-    stateRef.current.targetWinnerIndex = winnerIndex;
+    // 1. Pick winner based on weights and history
+    const targetWinnerIndex = selectWeightedWinner();
+    stateRef.current.targetWinnerIndex = targetWinnerIndex;
 
     // 2. Calculate target angle
     const currentAngleDeg = (stateRef.current.startAngle * 180 / Math.PI) % 360;
     
     const arcDeg = 360 / prizes.length;
-    const winnerCenterDeg = (winnerIndex * arcDeg) + (arcDeg / 2);
+    const winnerCenterDeg = (targetWinnerIndex * arcDeg) + (arcDeg / 2);
     
     let targetRotation = (270 - winnerCenterDeg - currentAngleDeg);
     while (targetRotation < 0) targetRotation += 360;
 
-    // 3. Add 2 to 5 full rotations (Requirement)
-    const extraRotations = Math.floor(Math.random() * 4) + 2; // 2, 3, 4, or 5
+    // 3. Add 5 to 10 full rotations (Requirement from remote branch)
+    const extraRotations = Math.floor(Math.random() * 6) + 5; // 5 to 10
     const totalRotationDeg = targetRotation + (extraRotations * 360);
 
     const duration = 4000 + Math.random() * 2000; 
@@ -186,8 +208,8 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
     stateRef.current.spinTime = 0;
     stateRef.current.spinTimeTotal = duration;
     
-    rotateWheel();
-  };
+    requestAnimationFrame(rotateWheel(targetWinnerIndex));
+  }, [isSpinning, prizes.length, selectWeightedWinner, rotateWheel]);
 
   const launchConfetti = () => {
     const count = 200;
