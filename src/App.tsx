@@ -85,7 +85,13 @@ function App() {
       // Send current state to remote immediately
       conn.on('open', () => {
         const currentText = prizes.map(p => p.text).join('\n');
-        conn.send({ type: 'SYNC_STATE', payload: currentText });
+        conn.send({ 
+          type: 'SYNC_STATE', 
+          payload: { 
+            text: currentText,
+            isFocusMode: isFocusMode 
+          } 
+        });
       });
 
       conn.on('data', (data: any) => {

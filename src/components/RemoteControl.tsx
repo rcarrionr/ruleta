@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Peer, DataConnection } from 'peerjs';
-import { Send, CheckCircle2, AlertCircle, XCircle, Maximize2 } from 'lucide-react';
+import { Send, CheckCircle2, AlertCircle, XCircle, Maximize2, Minimize2 } from 'lucide-react';
 
 interface RemoteControlProps {
   peerId: string;
@@ -8,6 +8,7 @@ interface RemoteControlProps {
 
 export function RemoteControl({ peerId }: RemoteControlProps) {
   const [text, setText] = useState('');
+  const [isFocusMode, setIsFocusMode] = useState(false);
   const [status, setStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
   const [conn, setConn] = useState<DataConnection | null>(null);
   const [lastSent, setLastSent] = useState(false);
@@ -25,7 +26,8 @@ export function RemoteControl({ peerId }: RemoteControlProps) {
 
       connection.on('data', (data: any) => {
         if (data.type === 'SYNC_STATE') {
-          setText(data.payload);
+          setText(data.payload.text);
+          setIsFocusMode(data.payload.isFocusMode);
         }
       });
 
@@ -65,6 +67,7 @@ export function RemoteControl({ peerId }: RemoteControlProps) {
 
   const handleToggleFocus = () => {
     if (conn && status === 'connected') {
+      setIsFocusMode(!isFocusMode);
       conn.send({ type: 'TOGGLE_FOCUS' });
     }
   };
@@ -144,10 +147,14 @@ export function RemoteControl({ peerId }: RemoteControlProps) {
 
         <button
           onClick={handleToggleFocus}
-          className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-white py-4 rounded-2xl font-bold border border-white/10"
+          className={`flex items-center justify-center gap-2 py-4 rounded-2xl font-bold border transition-all active:scale-95 ${
+            isFocusMode 
+              ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-900/20' 
+              : 'bg-slate-800 border-white/10 text-white'
+          }`}
         >
-          <Maximize2 size={24} />
-          Full Screen
+          {isFocusMode ? <Minimize2 size={24} /> : <Maximize2 size={24} />}
+          {isFocusMode ? 'Salir Full' : 'Entrar Full'}
         </button>
       </div>
     </div>
