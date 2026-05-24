@@ -6,10 +6,11 @@ interface RouletteProps {
   onFinish: (winner: Prize) => void;
   onRef: (spin: () => void, isSpinning: boolean) => void;
   isFocusMode?: boolean;
+  previousWinners?: string[];
 }
 
-export function Roulette({ prizes, onFinish, onRef, isFocusMode }: RouletteProps) {
-  const { canvasRef, spin, isSpinning } = useRoulette({ prizes, onFinish });
+export function Roulette({ prizes, onFinish, onRef, isFocusMode, previousWinners }: RouletteProps) {
+  const { canvasRef, spin, isSpinning } = useRoulette({ prizes, onFinish, previousWinners });
 
   // Pass control back to parent
   if (onRef) {

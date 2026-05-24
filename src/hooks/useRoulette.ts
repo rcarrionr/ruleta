@@ -216,10 +216,6 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     }
     
     // Ajustar la velocidad para terminar en el índice correcto
-    const arc = (2 * Math.PI) / prizes.length;
-    const targetAngle = (targetWinnerIndex * arc);
-    const totalRotation = (fullRotations * 2 * Math.PI) + targetAngle;
-    
     stateRef.current.spinAngleStart = velocity;
     stateRef.current.spinTime = 0;
     stateRef.current.spinTimeTotal = duration;
