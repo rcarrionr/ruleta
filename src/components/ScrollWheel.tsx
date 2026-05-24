@@ -24,41 +24,43 @@ export function ScrollWheel({ prizes, onFinish, onRef, isFocusMode }: ScrollWhee
   const displayList = Array(repeatCount).fill(prizes).flat();
 
   const spin = async () => {
-    if (isSpinning) return;
+    if (isSpinning || prizes.length === 0) return;
     setIsSpinning(true);
     
-    // 1. Calculate Winner Randomly
-    const winnerIndex = Math.floor(Math.random() * prizes.length);
+    // 1. Pick winner based on weights
+    const totalWeight = prizes.reduce((sum, p) => sum + (p.weight ?? 1), 0);
+    let random = Math.random() * totalWeight;
+    let winnerIndex = 0;
+    for (let i = 0; i < prizes.length; i++) {
+      random -= (prizes[i].weight ?? 1);
+      if (random <= 0) {
+        winnerIndex = i;
+        break;
+      }
+    }
     const winner = prizes[winnerIndex];
 
-    // 2. Calculate Stop Position
-    // We want to stop at a specific instance of the winner deep in the list
-    // Let's aim for the end of the list to allow long spin
-    const targetSetIndex = repeatCount - 2; // Stop at the second to last set
-    const targetIndexInSet = winnerIndex;
-    const totalIndex = (targetSetIndex * prizes.length) + targetIndexInSet;
+    // 2. Calculate Stop Position with 2-5 "rotations" (cycles)
+    const extraRotations = Math.floor(Math.random() * 4) + 2; // 2, 3, 4, or 5
+    const targetIndex = (extraRotations * prizes.length) + winnerIndex;
     
-    // Center offset: We want the winner to be in the middle of the container
-    // Container height = VISIBLE_ITEMS * ITEM_HEIGHT
-    // Center of container = (VISIBLE_ITEMS * ITEM_HEIGHT) / 2
-    // Item center = (totalIndex * ITEM_HEIGHT) + (ITEM_HEIGHT / 2)
-    // TranslateY = Center of container - Item center
+    // Ensure repeatCount is enough for the targetIndex
+    // If extraRotations is 5 and prizes.length is 20, targetIndex is 120.
+    // repeatCount of 20 is enough (20 * 20 = 400).
+
     const containerHeight = VISIBLE_ITEMS * ITEM_HEIGHT;
     const centerOffset = (containerHeight / 2) - (ITEM_HEIGHT / 2);
-    const finalY = -(totalIndex * ITEM_HEIGHT) + centerOffset;
+    const finalY = -(targetIndex * ITEM_HEIGHT) + centerOffset;
 
-    // 3. Reset to start (optional, or just continue if we handle loop)
-    // For simplicity, we snap to the first set equivalent position if we were already deep
-    // But since we just mount/unmount or reset state, straightforward animation is fine.
+    // 3. Reset to start if needed
     await controls.start({ y: 0, transition: { duration: 0 } });
 
     // 4. Animate
-    // Ease out cubic or similar for "wheel stopping" effect
     await controls.start({ 
       y: finalY,
       transition: { 
-        duration: 4, 
-        ease: [0.15, 0.25, 0.25, 1], // Cubic-bezier for spin deceleration
+        duration: 3 + Math.random() * 2, 
+        ease: [0.15, 0.25, 0.25, 1],
         type: "tween"
       }
     });

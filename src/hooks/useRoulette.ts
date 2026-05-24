@@ -19,6 +19,7 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
     spinTimeTotal: 0,
     arc: 0,
     ctx: null as CanvasRenderingContext2D | null,
+    targetWinnerIndex: -1,
   });
 
   const drawRouletteWheel = useCallback(() => {
@@ -118,15 +119,7 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
   const stopRotateWheel = () => {
     setIsSpinning(false);
     
-    const { startAngle } = stateRef.current;
-    
-    // Calculate winner
-    // 90 degree offset because 0 is right (0 rad), but we want top pointer
-    const degrees = startAngle * 180 / Math.PI + 90;
-    const arcd = 360 / prizes.length;
-    const index = Math.floor((360 - degrees % 360) / arcd);
-    
-    const winnerIndex = (index >= 0 && index < prizes.length) ? index : 0;
+    const winnerIndex = stateRef.current.targetWinnerIndex;
     const winner = prizes[winnerIndex];
 
     // Fire Confetti
@@ -155,35 +148,41 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
     
     drawRouletteWheel();
     requestAnimationFrame(rotateWheel);
-  }, [drawRouletteWheel]); // Recurse via ref logic, dependency safe
+  }, [drawRouletteWheel]);
 
   const spin = () => {
-    if (isSpinning) return;
+    if (isSpinning || prizes.length === 0) return;
     setIsSpinning(true);
     
-    // Determine Force Profile
-    const force = Math.random();
-    let velocity = 0;
-    let duration = 0;
-
-    if (force < 0.15) {
-      // WEAK SPIN (Lazy)
-      // Low speed, stops quickly (2.5s - 4s)
-      velocity = Math.random() * 15 + 10; 
-      duration = Math.random() * 1500 + 2500;
-    } else if (force < 0.8) {
-      // NORMAL SPIN
-      // Standard speed (4s - 7s)
-      velocity = Math.random() * 30 + 30; 
-      duration = Math.random() * 3000 + 4000;
-    } else {
-      // EPIC SPIN (Super Strong)
-      // Very high initial speed, long friction (8s - 13s)
-      velocity = Math.random() * 60 + 60; 
-      duration = Math.random() * 5000 + 8000; 
+    // 1. Pick winner based on weights
+    const totalWeight = prizes.reduce((sum, p) => sum + (p.weight ?? 1), 0);
+    let random = Math.random() * totalWeight;
+    let winnerIndex = 0;
+    for (let i = 0; i < prizes.length; i++) {
+      random -= (prizes[i].weight ?? 1);
+      if (random <= 0) {
+        winnerIndex = i;
+        break;
+      }
     }
+    stateRef.current.targetWinnerIndex = winnerIndex;
+
+    // 2. Calculate target angle
+    const currentAngleDeg = (stateRef.current.startAngle * 180 / Math.PI) % 360;
     
-    stateRef.current.spinAngleStart = velocity;
+    const arcDeg = 360 / prizes.length;
+    const winnerCenterDeg = (winnerIndex * arcDeg) + (arcDeg / 2);
+    
+    let targetRotation = (270 - winnerCenterDeg - currentAngleDeg);
+    while (targetRotation < 0) targetRotation += 360;
+
+    // 3. Add 2 to 5 full rotations (Requirement)
+    const extraRotations = Math.floor(Math.random() * 4) + 2; // 2, 3, 4, or 5
+    const totalRotationDeg = targetRotation + (extraRotations * 360);
+
+    const duration = 4000 + Math.random() * 2000; 
+    
+    stateRef.current.spinAngleStart = (totalRotationDeg * 2) / (duration / 30); 
     stateRef.current.spinTime = 0;
     stateRef.current.spinTimeTotal = duration;
     
