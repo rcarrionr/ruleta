@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Maximize2, Minimize2, RefreshCcw, LayoutList, Smartphone, Loader2 } from 'lucide-react';
 import { Roulette } from '@/components/Roulette';
 import { ScrollWheel } from '@/components/ScrollWheel';
@@ -132,10 +132,10 @@ function App() {
     return <RemoteControl peerId={remoteJoinId} />;
   }
 
-  const prizesWithWeights = prizes.map(p => ({
+  const prizesWithWeights = useMemo(() => prizes.map(p => ({
     ...p,
     weight: weights[p.id] || 1
-  }));
+  })), [prizes, weights]);
 
   const initialText = prizes.map(p => p.text).join('\n');
 

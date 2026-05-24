@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useRoulette } from '@/hooks/useRoulette';
 import { Prize } from '@/types';
 
@@ -12,10 +13,12 @@ interface RouletteProps {
 export function Roulette({ prizes, onFinish, onRef, isFocusMode, previousWinners }: RouletteProps) {
   const { canvasRef, spin, isSpinning } = useRoulette({ prizes, onFinish, previousWinners });
 
-  // Pass control back to parent
-  if (onRef) {
-    onRef(spin, isSpinning);
-  }
+  // Pass control back to parent safely
+  useEffect(() => {
+    if (onRef) {
+      onRef(spin, isSpinning);
+    }
+  }, [onRef, spin, isSpinning]);
 
   return (
     <div className={`relative flex justify-center items-center transition-all duration-500 ${isFocusMode ? 'w-full h-full' : 'drop-shadow-2xl'}`}>

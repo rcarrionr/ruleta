@@ -204,7 +204,11 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
 
     const duration = 4000 + Math.random() * 2000; 
     
-    stateRef.current.spinAngleStart = (totalRotationDeg * 2) / (duration / 30); 
+    // The integral of (1 - cubicEaseOut) is 0.25. 
+    // TotalRotation = Sum(spinAngle) = Sum(C * (1 - easeOut)) approx Integral(C * (1 - easeOut)) dt / step
+    // TotalRotation = (0.25 * C * duration) / 30
+    // C = (TotalRotation * 120) / duration
+    stateRef.current.spinAngleStart = (totalRotationDeg * 120) / duration; 
     stateRef.current.spinTime = 0;
     stateRef.current.spinTimeTotal = duration;
     
