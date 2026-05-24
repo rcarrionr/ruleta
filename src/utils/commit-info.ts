@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 // Este archivo es generado automáticamente durante el build
 // Se inyecta el hash del commit actual
 

@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/components/controls.tsx","./src/components/roulette.tsx","./src/components/scrollwheel.tsx","./src/components/winnermodal.tsx","./src/hooks/useroulette.ts","./src/types/index.ts"],"version":"5.9.3"}
+{"root":["./src/App.tsx","./src/main.tsx","./src/components/Controls.tsx","./src/components/Roulette.tsx","./src/components/ScrollWheel.tsx","./src/components/WinnerModal.tsx","./src/hooks/useRoulette.ts","./src/types/index.ts","./src/utils/commit-info.ts"],"version":"5.9.3"}
