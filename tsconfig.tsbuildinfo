@@ -1,1 +1,0 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/components/controls.tsx","./src/components/remotecontrol.tsx","./src/components/remoteqr.tsx","./src/components/roulette.tsx","./src/components/scrollwheel.tsx","./src/components/winnermodal.tsx","./src/hooks/useroulette.ts","./src/types/index.ts"],"version":"5.9.3"}
