@@ -96,6 +96,8 @@ function App() {
           spinFnRef.current();
         } else if (data.type === 'CLOSE_MODAL') {
           setWinner(null);
+        } else if (data.type === 'TOGGLE_FOCUS') {
+          setIsFocusMode(prev => !prev);
         }
       });
     });

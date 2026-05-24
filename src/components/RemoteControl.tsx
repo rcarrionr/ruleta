@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Peer, DataConnection } from 'peerjs';
-import { Send, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { Send, CheckCircle2, AlertCircle, XCircle, Maximize2 } from 'lucide-react';
 
 interface RemoteControlProps {
   peerId: string;
@@ -60,6 +60,12 @@ export function RemoteControl({ peerId }: RemoteControlProps) {
   const handleCloseModal = () => {
     if (conn && status === 'connected') {
       conn.send({ type: 'CLOSE_MODAL' });
+    }
+  };
+
+  const handleToggleFocus = () => {
+    if (conn && status === 'connected') {
+      conn.send({ type: 'TOGGLE_FOCUS' });
     }
   };
 
@@ -127,13 +133,23 @@ export function RemoteControl({ peerId }: RemoteControlProps) {
         </button>
       </div>
 
-      <button
-        onClick={handleCloseModal}
-        className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-white py-4 rounded-2xl font-bold border border-white/10"
-      >
-        <XCircle size={24} />
-        Cerrar Ganador
-      </button>
+      <div className="grid grid-cols-2 gap-4">
+        <button
+          onClick={handleCloseModal}
+          className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-white py-4 rounded-2xl font-bold border border-white/10"
+        >
+          <XCircle size={24} />
+          Cerrar Ganador
+        </button>
+
+        <button
+          onClick={handleToggleFocus}
+          className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-white py-4 rounded-2xl font-bold border border-white/10"
+        >
+          <Maximize2 size={24} />
+          Full Screen
+        </button>
+      </div>
     </div>
   );
 }
