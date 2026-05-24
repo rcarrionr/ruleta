@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Peer, DataConnection } from 'peerjs';
-import { Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Send, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 
 interface RemoteControlProps {
   peerId: string;
@@ -21,6 +21,12 @@ export function RemoteControl({ peerId }: RemoteControlProps) {
       connection.on('open', () => {
         setStatus('connected');
         setConn(connection);
+      });
+
+      connection.on('data', (data: any) => {
+        if (data.type === 'SYNC_STATE') {
+          setText(data.payload);
+        }
       });
 
       connection.on('error', () => {
@@ -48,6 +54,12 @@ export function RemoteControl({ peerId }: RemoteControlProps) {
   const handleSpin = () => {
     if (conn && status === 'connected') {
       conn.send({ type: 'SPIN' });
+    }
+  };
+
+  const handleCloseModal = () => {
+    if (conn && status === 'connected') {
+      conn.send({ type: 'CLOSE_MODAL' });
     }
   };
 
@@ -114,6 +126,14 @@ export function RemoteControl({ peerId }: RemoteControlProps) {
           Girar Ruleta
         </button>
       </div>
+
+      <button
+        onClick={handleCloseModal}
+        className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-white py-4 rounded-2xl font-bold border border-white/10"
+      >
+        <XCircle size={24} />
+        Cerrar Ganador
+      </button>
     </div>
   );
 }

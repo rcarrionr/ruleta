@@ -78,12 +78,24 @@ function App() {
 
     peer.on('connection', (conn) => {
       console.log('Nueva conexión remota establecida');
+      
+      // Auto-close QR on connection
+      setShowQR(false);
+
+      // Send current state to remote immediately
+      conn.on('open', () => {
+        const currentText = prizes.map(p => p.text).join('\n');
+        conn.send({ type: 'SYNC_STATE', payload: currentText });
+      });
+
       conn.on('data', (data: any) => {
         if (data.type === 'UPDATE_TEXT') {
           const names = data.payload.split('\n').filter((n: string) => n.trim() !== '');
           if (names.length >= 2) handleUpdate(names);
         } else if (data.type === 'SPIN') {
           spinFnRef.current();
+        } else if (data.type === 'CLOSE_MODAL') {
+          setWinner(null);
         }
       });
     });
