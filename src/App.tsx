@@ -61,6 +61,14 @@ function App() {
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [viewMode, setViewMode] = useState<'wheel' | 'scroll'>('wheel');
 
+  const executeSpin = () => {
+    if (winner) setWinner(null);
+    // Wait a frame to ensure modal closes before spin starts
+    setTimeout(() => {
+      spinFnRef.current();
+    }, 50);
+  };
+
   useEffect(() => {
     if (isRemoteMode) return;
 
@@ -99,7 +107,7 @@ function App() {
           const names = data.payload.split('\n').filter((n: string) => n.trim() !== '');
           if (names.length >= 2) handleUpdate(names);
         } else if (data.type === 'SPIN') {
-          spinFnRef.current();
+          executeSpin();
         } else if (data.type === 'CLOSE_MODAL') {
           setWinner(null);
         } else if (data.type === 'TOGGLE_FOCUS') {
@@ -223,7 +231,7 @@ function App() {
           <Controls 
             initialNames={initialText}
             onUpdate={handleUpdate}
-            onSpin={() => spinFnRef.current()}
+            onSpin={executeSpin}
             isSpinning={isSpinning}
             isFocusMode={isFocusMode}
           />
