@@ -42,6 +42,7 @@ function App() {
   // Initialize state from storage or defaults
   const [prizes, setPrizes] = useState<Prize[]>(() => generatePrizes(getInitialData()));
   const [winner, setWinner] = useState<Prize | null>(null);
+  const [previousWinners, setPreviousWinners] = useState<string[]>([]);
   
   // Controls state
   const spinFnRef = useRef<() => void>(() => {});
@@ -57,6 +58,9 @@ function App() {
   const handleFinish = (winner: Prize) => {
     setWinner(winner);
     setIsSpinning(false);
+    
+    // Track previous winners (keep last 10)
+    setPreviousWinners(prev => [winner.id, ...prev].slice(0, 10));
   };
 
   // Derived state for the textarea initial value
@@ -105,6 +109,7 @@ function App() {
                 spinFnRef.current = spin;
                 if (spinning !== isSpinning) setIsSpinning(spinning);
               }}
+              previousWinners={previousWinners}
             />
           ) : (
             <ScrollWheel 
