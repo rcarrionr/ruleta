@@ -121,29 +121,41 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     // Calcular pesos basados en historial y peso base
     const weights = prizes.map((prize) => {
       let weight = prize.weight ?? 1;
-      
+
       // Por cada aparición en los últimos giros, reducir probabilidad
       const occurrenceCount = previousWinners.filter(id => id === prize.id).length;
-      
+
       // Fórmula: cuantas más veces ha ganado, menor probabilidad
       weight *= Math.pow(0.5, occurrenceCount);
-      
+
       return weight;
     });
 
     // Seleccionar basado en pesos
     const totalWeight = weights.reduce((a, b) => a + b, 0);
     let random = Math.random() * totalWeight;
-    
+
     for (let i = 0; i < prizes.length; i++) {
       random -= weights[i];
       if (random <= 0) {
         return i;
       }
     }
-    
+
     return 0;
   }, [prizes, previousWinners]);
+
+  // Ensure pointer lands in safe zone (center of segment, away from borders)
+  const getSafeWinnerCenter = useCallback((winnerIndex: number): number => {
+    const arcDeg = 360 / prizes.length;
+    // Land in the center 60% of the segment, avoiding the outer 20% on each side
+    const safeZoneStart = arcDeg * 0.2;
+    const safeZoneEnd = arcDeg * 0.8;
+    const safeZoneCenter = (safeZoneStart + safeZoneEnd) / 2;
+
+    // Return the center position of the safe zone for this winner
+    return winnerIndex * arcDeg + safeZoneCenter;
+  }, [prizes.length]);
 
   // Animation Logic
   const stopRotateWheel = useCallback((targetWinnerIndex: number) => {
@@ -194,8 +206,8 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     const pointerDeg = 270;
     const currentAngleDeg = (stateRef.current.startAngle * 180 / Math.PI) % 360;
 
-    const arcDeg = 360 / prizes.length;
-    const winnerCenterDeg = (targetWinnerIndex * arcDeg) + (arcDeg / 2);
+    // Get safe landing position (center of safe zone, away from segment borders)
+    const winnerCenterDeg = getSafeWinnerCenter(targetWinnerIndex);
 
     let targetRotation = (pointerDeg - winnerCenterDeg - currentAngleDeg);
     while (targetRotation < 0) targetRotation += 360;
@@ -215,7 +227,7 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     stateRef.current.spinTimeTotal = duration;
     
     requestAnimationFrame(rotateWheel(targetWinnerIndex));
-  }, [isSpinning, prizes.length, selectWeightedWinner, rotateWheel]);
+  }, [isSpinning, prizes.length, selectWeightedWinner, rotateWheel, getSafeWinnerCenter]);
 
   const launchConfetti = () => {
     const count = 200;
