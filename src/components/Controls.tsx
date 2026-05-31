@@ -14,11 +14,12 @@ interface ControlsProps {
   onSpin: () => void;
   isSpinning: boolean;
   isFocusMode: boolean;
+  isDarkMode?: boolean;
 }
 
 type Mode = 'text' | 'list';
 
-export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMode }: ControlsProps) {
+export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMode, isDarkMode = true }: ControlsProps) {
   const [mode, setMode] = useState<Mode>('text');
   
   // Data State
@@ -91,16 +92,28 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
   };
 
   return (
-    <div className={`flex flex-col gap-4 w-full max-w-md transition-all duration-500 ${isFocusMode ? 'bg-transparent border-0 shadow-none p-0 items-center' : 'bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl'}`}>
+    <div className={`flex flex-col gap-4 w-full max-w-md transition-all duration-500 ${
+      isFocusMode
+        ? 'bg-transparent border-0 shadow-none p-0 items-center'
+        : isDarkMode
+          ? 'bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl'
+          : 'bg-white p-6 rounded-2xl border border-gray-300 shadow-lg'
+    }`}>
       
       {/* Header & Tabs - Hidden in Focus Mode */}
       {!isFocusMode && (
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-bold text-white">Opciones</h2>
-          <div className="flex bg-gray-900/50 rounded-lg p-1">
+          <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Opciones</h2>
+          <div className={`flex rounded-lg p-1 ${isDarkMode ? 'bg-gray-900/50' : 'bg-gray-200'}`}>
             <button
               onClick={() => handleModeSwitch('text')}
-              className={`p-2 rounded-md transition-all ${mode === 'text' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
+              className={`p-2 rounded-md transition-all ${
+                mode === 'text'
+                  ? 'bg-blue-600 text-white shadow'
+                  : isDarkMode
+                    ? 'text-gray-400 hover:text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+              }`}
               title="Modo Texto"
               disabled={isSpinning}
               tabIndex={0}
@@ -109,7 +122,13 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
             </button>
             <button
               onClick={() => handleModeSwitch('list')}
-              className={`p-2 rounded-md transition-all ${mode === 'list' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
+              className={`p-2 rounded-md transition-all ${
+                mode === 'list'
+                  ? 'bg-blue-600 text-white shadow'
+                  : isDarkMode
+                    ? 'text-gray-400 hover:text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+              }`}
               title="Modo Lista"
               disabled={isSpinning}
               tabIndex={0}
@@ -123,7 +142,11 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
       {/* --- TEXT MODE --- */}
       {!isFocusMode && mode === 'text' && (
         <textarea
-          className="w-full h-60 p-4 rounded-lg bg-gray-900/80 border border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none font-mono text-sm"
+          className={`w-full h-60 p-4 rounded-lg focus:ring-2 focus:outline-none resize-none font-mono text-sm transition-colors ${
+            isDarkMode
+              ? 'bg-gray-900/80 border border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
+              : 'bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500'
+          }`}
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Ingresa un nombre por línea..."
@@ -137,9 +160,13 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
         <div className="flex flex-col h-60">
           {/* Add Item Input */}
           <div className="flex gap-2 mb-3">
-            <input 
-              type="text" 
-              className="flex-1 bg-gray-900/80 border border-gray-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            <input
+              type="text"
+              className={`flex-1 rounded-lg px-3 py-2 focus:ring-2 focus:outline-none transition-colors ${
+                isDarkMode
+                  ? 'bg-gray-900/80 border border-gray-700 text-white focus:ring-blue-500'
+                  : 'bg-gray-50 border border-gray-300 text-gray-900 focus:ring-blue-500'
+              }`}
               placeholder="Nuevo elemento..."
               value={newItem}
               onChange={(e) => setNewItem(e.target.value)}
@@ -158,12 +185,20 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
           </div>
 
           {/* Scrollable List */}
-          <div className="flex-1 overflow-y-auto bg-gray-900/40 rounded-lg p-2 space-y-2 pr-1 custom-scrollbar border border-white/5">
+          <div className={`flex-1 overflow-y-auto rounded-lg p-2 space-y-2 pr-1 custom-scrollbar transition-colors ${
+            isDarkMode
+              ? 'bg-gray-900/40 border border-white/5'
+              : 'bg-gray-100 border border-gray-300'
+          }`}>
             {listItems.length === 0 && (
-              <p className="text-center text-gray-500 text-sm mt-10 italic">Lista vacía. ¡Agrega algo!</p>
+              <p className={`text-center text-sm mt-10 italic ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Lista vacía. ¡Agrega algo!</p>
             )}
             {listItems.map((item, idx) => (
-              <div key={idx} className="group flex items-center justify-between bg-gray-800/80 p-2 rounded-md border border-gray-700 hover:border-gray-500 transition">
+              <div key={idx} className={`group flex items-center justify-between p-2 rounded-md transition-colors ${
+                isDarkMode
+                  ? 'bg-gray-800/80 border border-gray-700 hover:border-gray-500'
+                  : 'bg-white border border-gray-200 hover:border-gray-400'
+              }`}>
                 <span className="truncate text-sm font-medium pl-1">{item}</span>
                 <button 
                   onClick={() => removeItem(idx)}
@@ -194,12 +229,18 @@ export function Controls({ initialNames, onUpdate, onSpin, isSpinning, isFocusMo
       )}
       
       {/* Main Actions */}
-      <div className={`flex gap-3 pt-2 ${!isFocusMode ? 'mt-auto border-t border-white/10' : ''}`}>
+      <div className={`flex gap-3 pt-2 transition-colors ${
+        !isFocusMode ? (isDarkMode ? 'mt-auto border-t border-white/10' : 'mt-auto border-t border-gray-300') : ''
+      }`}>
         {!isFocusMode && (
           <button
             onClick={handleUpdate}
             disabled={isSpinning}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 font-semibold rounded-xl transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
+              isDarkMode
+                ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                : 'bg-gray-300 hover:bg-gray-400 text-gray-900'
+            }`}
             tabIndex={0}
           >
             <RefreshCw size={18} />

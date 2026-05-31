@@ -4,9 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface WinnerModalProps {
   winner: Prize | null;
   onClose: () => void;
+  isDarkMode?: boolean;
 }
 
-export function WinnerModal({ winner, onClose }: WinnerModalProps) {
+export function WinnerModal({ winner, onClose, isDarkMode = true }: WinnerModalProps) {
   return (
     <AnimatePresence>
       {winner && (
@@ -14,7 +15,9 @@ export function WinnerModal({ winner, onClose }: WinnerModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0f0c29]/95 backdrop-blur-md p-4 overflow-hidden"
+          className={`fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-md p-4 overflow-hidden ${
+            isDarkMode ? 'bg-[#0f0c29]/95' : 'bg-white/95'
+          }`}
           onClick={onClose}
         >
           {/* Animated Background Glow */}
@@ -37,11 +40,13 @@ export function WinnerModal({ winner, onClose }: WinnerModalProps) {
             className="w-full max-w-5xl text-center relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
-            <motion.h2 
+            <motion.h2
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="text-white/60 text-2xl md:text-3xl font-bold uppercase tracking-[0.3em] mb-8 drop-shadow-lg"
+              className={`text-2xl md:text-3xl font-bold uppercase tracking-[0.3em] mb-8 drop-shadow-lg ${
+                isDarkMode ? 'text-white/60' : 'text-gray-700'
+              }`}
             >
               ¡Tenemos un Ganador!
             </motion.h2>
@@ -66,9 +71,17 @@ export function WinnerModal({ winner, onClose }: WinnerModalProps) {
             >
               <button
                 onClick={onClose}
-                className="group relative px-12 py-5 bg-white text-black font-black text-2xl rounded-full transition-all hover:scale-110 active:scale-95 shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-hidden"
+                className={`group relative px-12 py-5 font-black text-2xl rounded-full transition-all hover:scale-110 active:scale-95 overflow-hidden ${
+                  isDarkMode
+                    ? 'bg-white text-black shadow-[0_10px_30px_rgba(0,0,0,0.5)]'
+                    : 'bg-gray-900 text-white shadow-[0_10px_30px_rgba(0,0,0,0.3)]'
+                }`}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                <div className={`absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ${
+                  isDarkMode
+                    ? 'bg-gradient-to-r from-transparent via-white/40 to-transparent'
+                    : 'bg-gradient-to-r from-transparent via-black/20 to-transparent'
+                }`}></div>
                 ¡EXCELENTE!
               </button>
             </motion.div>

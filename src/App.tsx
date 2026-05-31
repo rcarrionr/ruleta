@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Maximize2, Minimize2, RefreshCcw, LayoutList, Smartphone, Loader2 } from 'lucide-react';
+import { Maximize2, Minimize2, RefreshCcw, LayoutList, Smartphone, Loader2, Sun, Moon } from 'lucide-react';
 import { Roulette } from '@/components/Roulette';
 import { ScrollWheel } from '@/components/ScrollWheel';
 import { Controls } from '@/components/Controls';
@@ -55,11 +55,19 @@ function App() {
   
   const [peerId, setPeerId] = useState<string>('');
   const [showQR, setShowQR] = useState(false);
-  
+
   const spinFnRef = useRef<() => void>(() => {});
   const [isSpinning, setIsSpinning] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [viewMode, setViewMode] = useState<'wheel' | 'scroll'>('wheel');
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('ruleta_dark_mode');
+    return saved ? JSON.parse(saved) : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('ruleta_dark_mode', JSON.stringify(isDarkMode));
+  }, [isDarkMode]);
 
   const executeSpin = () => {
     if (winner) setWinner(null);
@@ -168,10 +176,18 @@ function App() {
   const initialText = prizes.map(p => p.text).join('\n');
 
   return (
-    <div className={`bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] flex flex-col items-center p-4 font-sans text-white transition-all duration-500 ${isFocusMode ? 'h-screen w-screen overflow-hidden' : 'min-h-screen'}`}>
+    <div className={`flex flex-col items-center p-4 font-sans transition-all duration-500 ${
+      isDarkMode
+        ? 'bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white'
+        : 'bg-gradient-to-br from-white via-blue-50 to-blue-100 text-gray-900'
+    } ${isFocusMode ? 'h-screen w-screen overflow-hidden' : 'min-h-screen'}`}>
       
       <header className={`transition-all duration-500 text-center relative w-full max-w-6xl z-50 ${isFocusMode ? 'h-12 flex items-center justify-center shrink-0' : 'mb-8'}`}>
-        <h1 className={`font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00DDFF] to-[#FF0055] drop-shadow-[0_0_10px_rgba(255,0,85,0.5)] uppercase tracking-wider transition-all ${isFocusMode ? 'text-2xl' : 'text-5xl'}`}>
+        <h1 className={`font-black uppercase tracking-wider transition-all ${isFocusMode ? 'text-2xl' : 'text-5xl'} ${
+          isDarkMode
+            ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#00DDFF] to-[#FF0055] drop-shadow-[0_0_10px_rgba(255,0,85,0.5)]'
+            : 'text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-pink-600'
+        }`}>
           Ruleta
         </h1>
         
@@ -186,15 +202,25 @@ function App() {
 
           <button
             onClick={() => setViewMode(viewMode === 'wheel' ? 'scroll' : 'wheel')}
-            className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition"
+            className={`p-2 rounded-full transition ${isDarkMode ? 'text-white/50 hover:text-white hover:bg-white/10' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'}`}
             disabled={isSpinning}
+            title="Cambiar vista"
           >
             {viewMode === 'wheel' ? <LayoutList size={24} /> : <RefreshCcw size={24} />}
           </button>
-          
+
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`p-2 rounded-full transition ${isDarkMode ? 'text-white/50 hover:text-white hover:bg-white/10' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'}`}
+            title={isDarkMode ? "Modo claro" : "Modo oscuro"}
+          >
+            {isDarkMode ? <Sun size={24} /> : <Moon size={24} />}
+          </button>
+
           <button
             onClick={() => setIsFocusMode(!isFocusMode)}
-            className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition"
+            className={`p-2 rounded-full transition ${isDarkMode ? 'text-white/50 hover:text-white hover:bg-white/10' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'}`}
+            title={isFocusMode ? "Salir de modo enfoque" : "Modo enfoque"}
           >
             {isFocusMode ? <Minimize2 size={24} /> : <Maximize2 size={24} />}
           </button>
@@ -228,17 +254,18 @@ function App() {
         </div>
 
         <div className={`transition-all duration-500 ${isFocusMode ? 'w-full flex justify-center pb-4 shrink-0' : 'flex-1 w-full max-w-md'}`}>
-          <Controls 
+          <Controls
             initialNames={initialText}
             onUpdate={handleUpdate}
             onSpin={executeSpin}
             isSpinning={isSpinning}
             isFocusMode={isFocusMode}
+            isDarkMode={isDarkMode}
           />
         </div>
       </div>
 
-      <WinnerModal winner={winner} onClose={() => setWinner(null)} />
+      <WinnerModal winner={winner} onClose={() => setWinner(null)} isDarkMode={isDarkMode} />
 
       {showQR && (
         <RemoteQR 
@@ -249,12 +276,16 @@ function App() {
 
       {/* Footer with Commit Info */}
       {!isFocusMode && (
-        <footer className="mt-auto pt-8 text-center text-white/40 text-xs border-t border-white/10 w-full">
-          <a 
+        <footer className={`mt-auto pt-8 text-center text-xs w-full transition-colors ${
+          isDarkMode
+            ? 'text-white/40 border-t border-white/10'
+            : 'text-gray-500 border-t border-gray-300'
+        }`}>
+          <a
             href={COMMIT_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-white/60 transition underline"
+            className={`transition underline ${isDarkMode ? 'hover:text-white/60' : 'hover:text-gray-700'}`}
             title="Ver commit en GitHub"
           >
             Versión: {COMMIT_HASH}
