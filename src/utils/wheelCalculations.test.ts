@@ -15,7 +15,6 @@ describe('wheelCalculations', () => {
   describe('getWinnerIndexAtPointer', () => {
     it('should return prize 0 when pointer points to the first segment', () => {
       const prizes = createTestPrizes(['Gana 1000', 'Pierde todo', 'Sigue participando', 'Roba los puntos', 'Duplica']);
-      const arcDeg = 360 / 5; // 72°
       // To align prize 0 center (at startAngle + 36°) with pointer at 270°:
       // startAngle + 36 = 270 → startAngle = 234
       const startAngle = 234;
@@ -53,10 +52,9 @@ describe('wheelCalculations', () => {
 
       // Get the correct winner
       const correctIndex = getWinnerIndexAtPointer(startAngle, prizes);
-      const correctWinner = prizes[correctIndex];
 
       // Validate
-      const isValid = validateWinnerColor(startAngle, prizes, correctWinner);
+      const isValid = validateWinnerColor(startAngle, prizes, prizes[correctIndex]);
       expect(isValid).toBe(true);
     });
 
@@ -66,7 +64,6 @@ describe('wheelCalculations', () => {
 
       // Get the correct winner
       const correctIndex = getWinnerIndexAtPointer(startAngle, prizes);
-      const correctWinner = prizes[correctIndex];
 
       // Create a wrong winner (different index)
       const wrongIndex = (correctIndex + 1) % prizes.length;
@@ -81,7 +78,6 @@ describe('wheelCalculations', () => {
   describe('10 spin validation', () => {
     it('should maintain color accuracy across 10 consecutive spins', () => {
       const prizes = createTestPrizes(['Gana 1000', 'Pierde todo', 'Sigue participando', 'Roba los puntos', 'Duplica']);
-      const arcDeg = 360 / prizes.length;
 
       // Simulate 10 spins with random rotations
       for (let spin = 0; spin < 10; spin++) {
