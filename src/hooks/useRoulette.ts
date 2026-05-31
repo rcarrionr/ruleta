@@ -116,17 +116,40 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     drawRouletteWheel();
   }, [drawRouletteWheel]);
 
-  // Función para seleccionar un ganador evitando repeticiones
+  // Función para seleccionar un ganador evitando repeticiones y opciones cercanas
   const selectWeightedWinner = useCallback(() => {
-    // Calcular pesos basados en historial y peso base
-    const weights = prizes.map((prize) => {
+    const arcDeg = 360 / prizes.length;
+    // Margen mínimo: 1.5 segmentos de distancia angular (evita adyacentes)
+    const minDistanceDeg = arcDeg * 1.5;
+
+    // Obtener el último ganador si existe
+    const lastWinnerId = previousWinners[0];
+    let lastWinnerIndex = -1;
+    if (lastWinnerId) {
+      lastWinnerIndex = prizes.findIndex(p => p.id === lastWinnerId);
+    }
+
+    // Calcular pesos basados en historial y distancia angular
+    const weights = prizes.map((prize, index) => {
       let weight = prize.weight ?? 1;
 
-      // Por cada aparición en los últimos giros, reducir probabilidad
+      // Penalizar por apariciones recientes
       const occurrenceCount = previousWinners.filter(id => id === prize.id).length;
-
-      // Fórmula: cuantas más veces ha ganado, menor probabilidad
       weight *= Math.pow(0.5, occurrenceCount);
+
+      // Penalizar premios muy cercanos al último ganador
+      if (lastWinnerIndex !== -1) {
+        const distanceIndexes = Math.min(
+          Math.abs(index - lastWinnerIndex),
+          prizes.length - Math.abs(index - lastWinnerIndex)
+        );
+        const distanceDeg = distanceIndexes * arcDeg;
+
+        // Si está dentro del margen, reducir peso significativamente
+        if (distanceDeg < minDistanceDeg) {
+          weight *= 0.1; // 90% menos probable
+        }
+      }
 
       return weight;
     });
