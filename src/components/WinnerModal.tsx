@@ -51,14 +51,19 @@ export function WinnerModal({ winner, onClose, isDarkMode = true }: WinnerModalP
               ¡Tenemos un Ganador!
             </motion.h2>
             
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.5 }}
               animate={{ scale: [0.5, 1.1, 1] }}
               transition={{ type: "spring", damping: 12, stiffness: 100, delay: 0.3 }}
-              className="text-7xl md:text-9xl lg:text-[12rem] font-black mb-12 leading-none drop-shadow-[0_0_30px_rgba(255,255,255,0.4)] px-4"
-              style={{ 
+              className="mb-12 leading-tight drop-shadow-[0_0_30px_rgba(255,255,255,0.4)] px-4 break-words"
+              style={{
                 color: winner.color,
-                textShadow: `0 0 20px ${winner.color}44, 0 10px 40px rgba(0,0,0,0.5)`
+                textShadow: `0 0 20px ${winner.color}44, 0 10px 40px rgba(0,0,0,0.5)`,
+                fontSize: `clamp(2rem, ${Math.max(3, 20 - winner.text.length * 0.15)}vw, 12rem)`,
+                fontWeight: 900,
+                maxWidth: '90vw',
+                wordWrap: 'break-word',
+                overflowWrap: 'break-word'
               }}
             >
               {winner.text}
