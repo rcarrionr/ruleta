@@ -190,12 +190,14 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     stateRef.current.targetWinnerIndex = targetWinnerIndex;
 
     // 2. Calculate target angle
+    // Pointer is at 90 degrees (top of wheel)
+    const pointerDeg = 90;
     const currentAngleDeg = (stateRef.current.startAngle * 180 / Math.PI) % 360;
-    
+
     const arcDeg = 360 / prizes.length;
     const winnerCenterDeg = (targetWinnerIndex * arcDeg) + (arcDeg / 2);
-    
-    let targetRotation = (270 - winnerCenterDeg - currentAngleDeg);
+
+    let targetRotation = (pointerDeg - winnerCenterDeg - currentAngleDeg);
     while (targetRotation < 0) targetRotation += 360;
 
     // 3. Add 5 to 10 full rotations (Requirement from remote branch)
