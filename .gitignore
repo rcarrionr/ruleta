@@ -21,6 +21,8 @@ tscommand-1.tmp
 dist/
 dist-ssr/
 *.local
+*.tsbuildinfo
+node_modules/.vite/
 
 # Editor directories and files
 .vscode/*
@@ -42,3 +44,11 @@ dist-ssr/
 
 # Backup folder (original files)
 backup/
+
+# AI / Agent Tools
+.gemini/
+.claude/
+.cursor/
+.windsurf/
+.agents/
+memory/

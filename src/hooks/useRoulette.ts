@@ -5,9 +5,10 @@ import confetti from 'canvas-confetti';
 interface UseRouletteProps {
   prizes: Prize[];
   onFinish?: (winner: Prize) => void;
+  previousWinners?: string[]; // IDs of previous winners to avoid repetition
 }
 
-export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
+export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRouletteProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   
@@ -19,6 +20,7 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
     spinTimeTotal: 0,
     arc: 0,
     ctx: null as CanvasRenderingContext2D | null,
+    targetWinnerIndex: -1,
   });
 
   const drawRouletteWheel = useCallback(() => {
@@ -114,28 +116,46 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
     drawRouletteWheel();
   }, [drawRouletteWheel]);
 
+  // Función para seleccionar un ganador evitando repeticiones
+  const selectWeightedWinner = useCallback(() => {
+    // Calcular pesos basados en historial y peso base
+    const weights = prizes.map((prize) => {
+      let weight = prize.weight ?? 1;
+      
+      // Por cada aparición en los últimos giros, reducir probabilidad
+      const occurrenceCount = previousWinners.filter(id => id === prize.id).length;
+      
+      // Fórmula: cuantas más veces ha ganado, menor probabilidad
+      weight *= Math.pow(0.5, occurrenceCount);
+      
+      return weight;
+    });
+
+    // Seleccionar basado en pesos
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    let random = Math.random() * totalWeight;
+    
+    for (let i = 0; i < prizes.length; i++) {
+      random -= weights[i];
+      if (random <= 0) {
+        return i;
+      }
+    }
+    
+    return 0;
+  }, [prizes, previousWinners]);
+
   // Animation Logic
-  const stopRotateWheel = () => {
+  const stopRotateWheel = useCallback((targetWinnerIndex: number) => {
     setIsSpinning(false);
 
-    const { startAngle } = stateRef.current;
-
-    // Calculate winner
-    // Pointer is at 90 degrees (top of wheel)
-    const pointerDegrees = 90;
-    const degrees = startAngle * 180 / Math.PI;
-    const arcd = 360 / prizes.length;
-    let delta = (pointerDegrees - degrees) % 360;
-    if (delta < 0) delta += 360;
-
-    const winnerIndex = Math.floor(delta / arcd) % prizes.length;
-    const winner = prizes[winnerIndex];
+    const winner = prizes[targetWinnerIndex];
 
     // Fire Confetti
     launchConfetti();
 
     if (onFinish) onFinish(winner);
-  };
+  }, [prizes, onFinish]);
 
   const easeOut = (t: number, b: number, c: number, d: number) => {
     const ts = (t /= d) * t;
@@ -143,54 +163,57 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
     return b + c * (tc + -3 * ts + 3 * t);
   };
 
-  const rotateWheel = useCallback(() => {
-    const s = stateRef.current;
-    s.spinTime += 30;
-    
-    if (s.spinTime >= s.spinTimeTotal) {
-      stopRotateWheel();
-      return;
-    }
+  const rotateWheel = useCallback((targetWinnerIndex: number) => {
+    return () => {
+      const s = stateRef.current;
+      s.spinTime += 30;
+      
+      if (s.spinTime >= s.spinTimeTotal) {
+        stopRotateWheel(targetWinnerIndex);
+        return;
+      }
 
-    const spinAngle = s.spinAngleStart - easeOut(s.spinTime, 0, s.spinAngleStart, s.spinTimeTotal);
-    s.startAngle += (spinAngle * Math.PI / 180);
-    
-    drawRouletteWheel();
-    requestAnimationFrame(rotateWheel);
-  }, [drawRouletteWheel]); // Recurse via ref logic, dependency safe
+      const spinAngle = s.spinAngleStart - easeOut(s.spinTime, 0, s.spinAngleStart, s.spinTimeTotal);
+      s.startAngle += (spinAngle * Math.PI / 180);
+      
+      drawRouletteWheel();
+      requestAnimationFrame(rotateWheel(targetWinnerIndex));
+    };
+  }, [drawRouletteWheel, stopRotateWheel]);
 
-  const spin = () => {
-    if (isSpinning) return;
+  const spin = useCallback(() => {
+    if (isSpinning || prizes.length === 0) return;
     setIsSpinning(true);
     
-    // Determine Force Profile
-    const force = Math.random();
-    let velocity = 0;
-    let duration = 0;
+    // 1. Pick winner based on weights and history
+    const targetWinnerIndex = selectWeightedWinner();
+    stateRef.current.targetWinnerIndex = targetWinnerIndex;
 
-    if (force < 0.15) {
-      // WEAK SPIN (Lazy)
-      // Low speed, stops quickly (2.5s - 4s)
-      velocity = Math.random() * 15 + 10; 
-      duration = Math.random() * 1500 + 2500;
-    } else if (force < 0.8) {
-      // NORMAL SPIN
-      // Standard speed (4s - 7s)
-      velocity = Math.random() * 30 + 30; 
-      duration = Math.random() * 3000 + 4000;
-    } else {
-      // EPIC SPIN (Super Strong)
-      // Very high initial speed, long friction (8s - 13s)
-      velocity = Math.random() * 60 + 60; 
-      duration = Math.random() * 5000 + 8000; 
-    }
+    // 2. Calculate target angle
+    const currentAngleDeg = (stateRef.current.startAngle * 180 / Math.PI) % 360;
     
-    stateRef.current.spinAngleStart = velocity;
+    const arcDeg = 360 / prizes.length;
+    const winnerCenterDeg = (targetWinnerIndex * arcDeg) + (arcDeg / 2);
+    
+    let targetRotation = (270 - winnerCenterDeg - currentAngleDeg);
+    while (targetRotation < 0) targetRotation += 360;
+
+    // 3. Add 5 to 10 full rotations (Requirement from remote branch)
+    const extraRotations = Math.floor(Math.random() * 6) + 5; // 5 to 10
+    const totalRotationDeg = targetRotation + (extraRotations * 360);
+
+    const duration = 4000 + Math.random() * 2000; 
+    
+    // The integral of (1 - cubicEaseOut) is 0.25. 
+    // TotalRotation = Sum(spinAngle) = Sum(C * (1 - easeOut)) approx Integral(C * (1 - easeOut)) dt / step
+    // TotalRotation = (0.25 * C * duration) / 30
+    // C = (TotalRotation * 120) / duration
+    stateRef.current.spinAngleStart = (totalRotationDeg * 120) / duration; 
     stateRef.current.spinTime = 0;
     stateRef.current.spinTimeTotal = duration;
     
-    rotateWheel();
-  };
+    requestAnimationFrame(rotateWheel(targetWinnerIndex));
+  }, [isSpinning, prizes.length, selectWeightedWinner, rotateWheel]);
 
   const launchConfetti = () => {
     const count = 200;
