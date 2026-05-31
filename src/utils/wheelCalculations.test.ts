@@ -15,7 +15,10 @@ describe('wheelCalculations', () => {
   describe('getWinnerIndexAtPointer', () => {
     it('should return prize 0 when pointer points to the first segment', () => {
       const prizes = createTestPrizes(['Gana 1000', 'Pierde todo', 'Sigue participando', 'Roba los puntos', 'Duplica']);
-      const startAngle = 0; // First prize starts at 0°
+      const arcDeg = 360 / 5; // 72°
+      // To align prize 0 center (at startAngle + 36°) with pointer at 270°:
+      // startAngle + 36 = 270 → startAngle = 234
+      const startAngle = 234;
 
       const winnerIndex = getWinnerIndexAtPointer(startAngle, prizes);
       expect(winnerIndex).toBe(0);
