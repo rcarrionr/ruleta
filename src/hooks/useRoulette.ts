@@ -117,16 +117,18 @@ export function useRoulette({ prizes, onFinish }: UseRouletteProps) {
   // Animation Logic
   const stopRotateWheel = () => {
     setIsSpinning(false);
-    
+
     const { startAngle } = stateRef.current;
-    
+
     // Calculate winner
-    // 90 degree offset because 0 is right (0 rad), but we want top pointer
-    const degrees = startAngle * 180 / Math.PI + 90;
+    // Pointer is at 90 degrees (top of wheel)
+    const pointerDegrees = 90;
+    const degrees = startAngle * 180 / Math.PI;
     const arcd = 360 / prizes.length;
-    const index = Math.floor((360 - degrees % 360) / arcd);
-    
-    const winnerIndex = (index >= 0 && index < prizes.length) ? index : 0;
+    let delta = (pointerDegrees - degrees) % 360;
+    if (delta < 0) delta += 360;
+
+    const winnerIndex = Math.floor(delta / arcd) % prizes.length;
     const winner = prizes[winnerIndex];
 
     // Fire Confetti
