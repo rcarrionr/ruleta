@@ -145,16 +145,11 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     return 0;
   }, [prizes, previousWinners]);
 
-  // Ensure pointer lands in safe zone (center of segment, away from borders)
-  const getSafeWinnerCenter = useCallback((winnerIndex: number): number => {
+  // Get the center of the segment with safe offset
+  const getSegmentCenter = useCallback((winnerIndex: number): number => {
     const arcDeg = 360 / prizes.length;
-    // Land in the center 60% of the segment, avoiding the outer 20% on each side
-    const safeZoneStart = arcDeg * 0.2;
-    const safeZoneEnd = arcDeg * 0.8;
-    const safeZoneCenter = (safeZoneStart + safeZoneEnd) / 2;
-
-    // Return the center position of the safe zone for this winner
-    return winnerIndex * arcDeg + safeZoneCenter;
+    // Return the exact center of the segment
+    return winnerIndex * arcDeg + arcDeg / 2;
   }, [prizes.length]);
 
   // Animation Logic
@@ -206,8 +201,8 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     const pointerDeg = 270;
     const currentAngleDeg = (stateRef.current.startAngle * 180 / Math.PI) % 360;
 
-    // Get safe landing position (center of safe zone, away from segment borders)
-    const winnerCenterDeg = getSafeWinnerCenter(targetWinnerIndex);
+    // Get segment center position
+    const winnerCenterDeg = getSegmentCenter(targetWinnerIndex);
 
     let targetRotation = (pointerDeg - winnerCenterDeg - currentAngleDeg);
     while (targetRotation < 0) targetRotation += 360;
@@ -227,7 +222,7 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     stateRef.current.spinTimeTotal = duration;
     
     requestAnimationFrame(rotateWheel(targetWinnerIndex));
-  }, [isSpinning, prizes.length, selectWeightedWinner, rotateWheel, getSafeWinnerCenter]);
+  }, [isSpinning, prizes.length, selectWeightedWinner, rotateWheel, getSegmentCenter]);
 
   const launchConfetti = () => {
     const count = 200;
