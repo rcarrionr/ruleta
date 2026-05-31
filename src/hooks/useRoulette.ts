@@ -190,8 +190,8 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     stateRef.current.targetWinnerIndex = targetWinnerIndex;
 
     // 2. Calculate target angle
-    // Pointer is at 90 degrees (top of wheel)
-    const pointerDeg = 90;
+    // Pointer is at 270 degrees (top of wheel in canvas coordinate system)
+    const pointerDeg = 270;
     const currentAngleDeg = (stateRef.current.startAngle * 180 / Math.PI) % 360;
 
     const arcDeg = 360 / prizes.length;
