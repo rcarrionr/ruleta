@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getWinnerIndexAtPointer, validateWinnerColor } from './wheelCalculations';
+import { getWinnerIndexAtPointer, validateWinnerColor, getSegmentTargetPosition } from './wheelCalculations';
 import { Prize } from '@/types';
 
 describe('wheelCalculations', () => {
@@ -110,6 +110,45 @@ describe('wheelCalculations', () => {
           // Verify it's the correct prize
           expect(winnerIndex).toBe(prizeIndex);
           expect(prizes[winnerIndex].color).toBe(prizes[prizeIndex].color);
+        }
+      }
+    });
+  });
+  describe('getSegmentTargetPosition', () => {
+    it('should calculate safe target angles for 3, 4, and 5 prizes over multiple rounds', () => {
+      const testCases = [3, 4, 5];
+      const rounds = 5; // Run 5 rounds for each configuration to test randomness
+
+      for (const numPrizes of testCases) {
+        const prizes = createTestPrizes(Array.from({ length: numPrizes }, (_, i) => `Option ${i}`));
+        const arcDeg = 360 / numPrizes;
+        const safeZoneMinOffset = arcDeg * 0.2;
+        const safeZoneMaxOffset = arcDeg * 0.8;
+
+        for (let round = 0; round < rounds; round++) {
+          for (let winnerIndex = 0; winnerIndex < numPrizes; winnerIndex++) {
+            const targetPosition = getSegmentTargetPosition(winnerIndex, numPrizes);
+
+            // 1. Check it falls within the safe bounds of its segment
+            const segmentStart = winnerIndex * arcDeg;
+            const minExpected = segmentStart + safeZoneMinOffset;
+            const maxExpected = segmentStart + safeZoneMaxOffset;
+
+            expect(targetPosition).toBeGreaterThanOrEqual(minExpected);
+            expect(targetPosition).toBeLessThanOrEqual(maxExpected);
+
+            // 2. Validate it points back to the correct winner when rotated properly
+            // We simulate the pointer at 270. If we spin the wheel to place targetPosition at 270,
+            // then getWinnerIndexAtPointer should return winnerIndex.
+
+            // currentAngleDeg must be calculated such that winnerTargetDeg points to 270.
+            // In useRoulette: targetRotation = (270 - targetPosition - currentAngleDeg) % 360
+            // If targetRotation is 0, then currentAngleDeg = (270 - targetPosition)
+            const finalAngleDeg = (270 - targetPosition + 360) % 360;
+            const computedWinner = getWinnerIndexAtPointer(finalAngleDeg, prizes, 270);
+
+            expect(computedWinner).toBe(winnerIndex);
+          }
         }
       }
     });

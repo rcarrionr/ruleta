@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { Prize } from '@/types';
 import confetti from 'canvas-confetti';
+import { getSegmentTargetPosition } from '@/utils/wheelCalculations';
 
 interface UseRouletteProps {
   prizes: Prize[];
@@ -169,18 +170,6 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     return 0;
   }, [prizes, previousWinners]);
 
-  // Get a safe landing target position within the segment
-  const getSegmentTargetPosition = useCallback((winnerIndex: number): number => {
-    const arcDeg = 360 / prizes.length;
-    // Safe zone between 20% and 80% of the segment
-    const safeZoneMin = arcDeg * 0.2;
-    const safeZoneMax = arcDeg * 0.8;
-    const randomOffset = safeZoneMin + Math.random() * (safeZoneMax - safeZoneMin);
-
-    // Return the starting angle of the segment plus the random offset
-    return winnerIndex * arcDeg + randomOffset;
-  }, [prizes.length]);
-
   // Animation Logic
   const stopRotateWheel = useCallback((targetWinnerIndex: number) => {
     setIsSpinning(false);
@@ -233,7 +222,7 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     const currentAngleDeg = (stateRef.current.startAngle * 180 / Math.PI) % 360;
 
     // Get a safe segment target position
-    const winnerTargetDeg = getSegmentTargetPosition(targetWinnerIndex);
+    const winnerTargetDeg = getSegmentTargetPosition(targetWinnerIndex, prizes.length);
 
     let targetRotation = (pointerDeg - winnerTargetDeg - currentAngleDeg);
     while (targetRotation < 0) targetRotation += 360;
@@ -250,7 +239,7 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     stateRef.current.spinTimeTotal = duration;
     
     requestAnimationFrame(rotateWheel(targetWinnerIndex));
-  }, [isSpinning, prizes.length, selectWeightedWinner, rotateWheel, getSegmentTargetPosition]);
+  }, [isSpinning, prizes.length, selectWeightedWinner, rotateWheel]);
 
   const launchConfetti = () => {
     const count = 200;
