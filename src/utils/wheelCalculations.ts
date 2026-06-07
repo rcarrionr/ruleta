@@ -44,3 +44,20 @@ export function validateWinnerColor(
   return correctWinner.id === expectedWinner.id &&
          correctWinner.color === expectedWinner.color;
 }
+
+/**
+ * Calcula una posición objetivo segura dentro de un segmento (entre el 20% y el 80%)
+ * @param winnerIndex Índice del premio ganador
+ * @param totalPrizes Cantidad total de premios
+ * @returns El ángulo objetivo en grados relativo al inicio
+ */
+export function getSegmentTargetPosition(winnerIndex: number, totalPrizes: number): number {
+  const arcDeg = 360 / totalPrizes;
+  // Safe zone between 20% and 80% of the segment
+  const safeZoneMin = arcDeg * 0.2;
+  const safeZoneMax = arcDeg * 0.8;
+  const randomOffset = safeZoneMin + Math.random() * (safeZoneMax - safeZoneMin);
+
+  // Return the starting angle of the segment plus the random offset
+  return winnerIndex * arcDeg + randomOffset;
+}
