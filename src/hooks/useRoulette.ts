@@ -15,7 +15,8 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
   // State refs to keep track inside animation frame without re-triggering
   const stateRef = useRef({
     startAngle: 0,
-    spinAngleStart: 0,
+    initialStartAngle: 0,
+    targetRotationRad: 0,
     spinTime: 0,
     spinTimeTotal: 0,
     arc: 0,
@@ -168,11 +169,16 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     return 0;
   }, [prizes, previousWinners]);
 
-  // Get the center of the segment with safe offset
-  const getSegmentCenter = useCallback((winnerIndex: number): number => {
+  // Get a safe landing target position within the segment
+  const getSegmentTargetPosition = useCallback((winnerIndex: number): number => {
     const arcDeg = 360 / prizes.length;
-    // Return the exact center of the segment
-    return winnerIndex * arcDeg + arcDeg / 2;
+    // Safe zone between 20% and 80% of the segment
+    const safeZoneMin = arcDeg * 0.2;
+    const safeZoneMax = arcDeg * 0.8;
+    const randomOffset = safeZoneMin + Math.random() * (safeZoneMax - safeZoneMin);
+
+    // Return the starting angle of the segment plus the random offset
+    return winnerIndex * arcDeg + randomOffset;
   }, [prizes.length]);
 
   // Animation Logic
@@ -199,12 +205,14 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
       s.spinTime += 30;
       
       if (s.spinTime >= s.spinTimeTotal) {
+        s.startAngle = s.initialStartAngle + s.targetRotationRad;
+        drawRouletteWheel();
         stopRotateWheel(targetWinnerIndex);
         return;
       }
 
-      const spinAngle = s.spinAngleStart - easeOut(s.spinTime, 0, s.spinAngleStart, s.spinTimeTotal);
-      s.startAngle += (spinAngle * Math.PI / 180);
+      const currentRotation = easeOut(s.spinTime, 0, s.targetRotationRad, s.spinTimeTotal);
+      s.startAngle = s.initialStartAngle + currentRotation;
       
       drawRouletteWheel();
       requestAnimationFrame(rotateWheel(targetWinnerIndex));
@@ -224,10 +232,10 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
     const pointerDeg = 270;
     const currentAngleDeg = (stateRef.current.startAngle * 180 / Math.PI) % 360;
 
-    // Get segment center position
-    const winnerCenterDeg = getSegmentCenter(targetWinnerIndex);
+    // Get a safe segment target position
+    const winnerTargetDeg = getSegmentTargetPosition(targetWinnerIndex);
 
-    let targetRotation = (pointerDeg - winnerCenterDeg - currentAngleDeg);
+    let targetRotation = (pointerDeg - winnerTargetDeg - currentAngleDeg);
     while (targetRotation < 0) targetRotation += 360;
 
     // 3. Add 5 to 10 full rotations (Requirement from remote branch)
@@ -236,16 +244,13 @@ export function useRoulette({ prizes, onFinish, previousWinners = [] }: UseRoule
 
     const duration = 4000 + Math.random() * 2000; 
     
-    // The integral of (1 - cubicEaseOut) is 0.25. 
-    // TotalRotation = Sum(spinAngle) = Sum(C * (1 - easeOut)) approx Integral(C * (1 - easeOut)) dt / step
-    // TotalRotation = (0.25 * C * duration) / 30
-    // C = (TotalRotation * 120) / duration
-    stateRef.current.spinAngleStart = (totalRotationDeg * 120) / duration; 
+    stateRef.current.initialStartAngle = stateRef.current.startAngle;
+    stateRef.current.targetRotationRad = (totalRotationDeg * Math.PI) / 180;
     stateRef.current.spinTime = 0;
     stateRef.current.spinTimeTotal = duration;
     
     requestAnimationFrame(rotateWheel(targetWinnerIndex));
-  }, [isSpinning, prizes.length, selectWeightedWinner, rotateWheel, getSegmentCenter]);
+  }, [isSpinning, prizes.length, selectWeightedWinner, rotateWheel, getSegmentTargetPosition]);
 
   const launchConfetti = () => {
     const count = 200;
